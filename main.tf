@@ -1,6 +1,5 @@
-resource "google_compute_network" "pihole_vpn_network" {
-  name                    = "pihole-vpn-network"
-  auto_create_subnetworks = "true"
+data "google_compute_network" "default" {
+  name                    = "default"
 }
 
 resource "google_compute_address" "static" {
@@ -26,11 +25,30 @@ resource "google_compute_instance" "pihole" {
   }
 
   network_interface {
-    network = google_compute_network.pihole_vpn_network.self_link
+    network = data.google_compute_network.default.self_link
     access_config {
       nat_ip = google_compute_address.static.address
     }
   }
 
-  metadata_startup_script = "echo hi > /test.txt"
+  metadata_startup_script = file("setup.sh")
 }
+
+resource "google_compute_firewall" "firewall" {
+  name    = "allow-wireguard"
+  network = data.google_compute_network.default.name
+  direction = "INGRESS"
+  priority = 1000
+  enable_logging = false
+  source_ranges = ["0.0.0.0/0"]
+  target_tags = ["pihole-vpn"]
+
+  allow {
+    protocol = "udp"
+    ports    = ["51515"]
+
+  }
+
+  source_tags = ["web"]
+}
+
