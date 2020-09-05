@@ -1,9 +1,9 @@
 data "google_compute_network" "default" {
-  name                    = "default"
+  name    = "default"
 }
 
 resource "google_compute_address" "static" {
-  name = "ipv4-address"
+  name    = "ipv4-address"
 }
 
 data "google_compute_image" "ubuntu_image" {
@@ -51,4 +51,3 @@ resource "google_compute_firewall" "firewall" {
 
   source_tags = ["web"]
 }
-
